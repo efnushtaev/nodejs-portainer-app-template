@@ -13,12 +13,14 @@ services:
     networks:
       - app-network
 
-  client:  # ПЕРЕМЕЩЕНО В РАЗДЕЛ SERVICES
-    build: ./client
+  client: # ПЕРЕМЕЩЕНО В РАЗДЕЛ SERVICES
+    build:
+      context: . # 🔴 КРИТИЧЕСКОЕ ИЗМЕНЕНИЕ!
+      dockerfile: client/Dockerfile # Путь относительно корня
     networks:
       - app-network
     volumes:
-      - ./client/build:/app/build  # bind mount (не требует объявления в volumes)
+      - ./client/build:/app/build # bind mount (не требует объявления в volumes)
 
   nginx:
     image: nginx:alpine
@@ -26,14 +28,14 @@ services:
       - "80:80"
     volumes:
       - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf
-      - ./client/build:/usr/share/nginx/html  # использует сборку из client
+      - ./client/build:/usr/share/nginx/html # использует сборку из client
     networks:
       - app-network
     depends_on:
       - client
 
 volumes:
-  portainer_data:  # ТОЛЬКО ОПРЕДЕЛЕНИЕ ТОМА (без лишних свойств)
+  portainer_data: # ТОЛЬКО ОПРЕДЕЛЕНИЕ ТОМА (без лишних свойств)
     driver: local
 
 networks:
