@@ -13,17 +13,12 @@ services:
     networks:
       - app-network
 
-volumes:
-  portainer_data:
-    driver: local
-
-  client:
+  client:  # ПЕРЕМЕЩЕНО В РАЗДЕЛ SERVICES
     build: ./client
     networks:
       - app-network
-    # Добавьте эту секцию, если нужно сохранить собранные файлы
     volumes:
-      - ./client/build:/app/build
+      - ./client/build:/app/build  # bind mount (не требует объявления в volumes)
 
   nginx:
     image: nginx:alpine
@@ -31,11 +26,15 @@ volumes:
       - "80:80"
     volumes:
       - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf
-      - ./client/build:/usr/share/nginx/html
+      - ./client/build:/usr/share/nginx/html  # использует сборку из client
     networks:
       - app-network
     depends_on:
       - client
+
+volumes:
+  portainer_data:  # ТОЛЬКО ОПРЕДЕЛЕНИЕ ТОМА (без лишних свойств)
+    driver: local
 
 networks:
   app-network:
