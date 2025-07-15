@@ -13,32 +13,22 @@ services:
     networks:
       - app-network
 
-  client:
-    build:
-      context: ./client  # Контекст сборки - папка client
-      dockerfile: Dockerfile  # ⚠️ Исправлено! Просто имя файла, без пути
-    networks:
-      - app-network
-    # Убрал том сборки, так как он не нужен для работы приложения
-    # (сборка происходит внутри контейнера, результат копируется в nginx)
-
+  # Убран сервис client - сборка интегрирована в nginx
   nginx:
-    image: nginx:alpine
+    build:
+      context: ./client
+      dockerfile: Dockerfile
+      target: final  # Используем финальный этап сборки
     ports:
       - "80:80"
     volumes:
       - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf
-      # Используем том из клиентского сервиса:
-      - client_build:/usr/share/nginx/html:ro
     networks:
       - app-network
-    depends_on:
-      - client
 
 volumes:
   portainer_data:
     driver: local
-  client_build:  # ⚠️ Новый именованный том для сборки
 
 networks:
   app-network:

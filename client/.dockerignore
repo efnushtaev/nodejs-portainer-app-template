@@ -1,7 +1,7 @@
-Dockerfile
-.dockerignore
 node_modules
 .git
+Dockerfile
+.dockerignore
+build
 .env
 *.log
-build
