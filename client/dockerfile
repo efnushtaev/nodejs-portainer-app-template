@@ -1,12 +1,29 @@
-# Исправляем регистр первой строки
 FROM node:18-alpine AS build
 
+# Установка необходимых системных зависимостей
+RUN apk add --no-cache python3 make g++ git
+
 WORKDIR /app
+
+# Копируем только файлы зависимостей для лучшего кэширования
 COPY package*.json ./
-RUN npm install
+
+# Устанавливаем зависимости с дополнительными флагами
+RUN npm config set unsafe-perm true && \
+    npm install --force --legacy-peer-deps --no-optional
+
+# Копируем остальные файлы проекта
 COPY . .
+
+# Увеличиваем память для сборки и запускаем build
+ENV NODE_OPTIONS="--max-old-space-size=4096"
 RUN npm run build
 
-# Убираем nginx из клиентского образа
+# Финальный образ
 FROM nginx:alpine
+
+# Копируем собранное приложение
 COPY --from=build /app/build /usr/share/nginx/html
+
+# (Опционально) Копируем кастомную конфигурацию Nginx
+# COPY nginx.conf /etc/nginx/conf.d/default.conf
