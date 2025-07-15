@@ -1,29 +1,41 @@
-FROM node:18-alpine AS build
+# Используем базовый образ с дополнительными инструментами сборки
+FROM node:18-alpine AS deps
 
-# Установка необходимых системных зависимостей
-RUN apk add --no-cache python3 make g++ git
+# Установка критически важных зависимостей
+RUN apk add --no-cache python3 make g++ git openssh-client
 
+# Создаем и переходим в рабочую директорию
 WORKDIR /app
 
-# Копируем только файлы зависимостей для лучшего кэширования
-COPY package*.json ./
+# Шаг 1: Копируем ТОЛЬКО файлы зависимостей
+COPY package.json package-lock.json* ./
 
-# Устанавливаем зависимости с дополнительными флагами
-RUN npm config set unsafe-perm true && \
-    npm install --force --legacy-peer-deps --no-optional
+# Шаг 2: Чистим кэш и устанавливаем зависимости
+RUN npm cache clean --force
+RUN npm ci --no-optional || \ 
+    (npm install --no-optional --legacy-peer-deps && npm cache clean --force)
 
-# Копируем остальные файлы проекта
+# --------------------------------------------
+# Этап сборки приложения
+FROM node:18-alpine AS builder
+WORKDIR /app
+COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
-# Увеличиваем память для сборки и запускаем build
+# Устанавливаем переменные окружения для сборки
 ENV NODE_OPTIONS="--max-old-space-size=4096"
+ENV GENERATE_SOURCEMAP=false
+
 RUN npm run build
 
-# Финальный образ
-FROM nginx:alpine
+# --------------------------------------------
+# Финальный образ с Nginx
+FROM nginx:1.25-alpine
+COPY --from=builder /app/build /usr/share/nginx/html
 
-# Копируем собранное приложение
-COPY --from=build /app/build /usr/share/nginx/html
-
-# (Опционально) Копируем кастомную конфигурацию Nginx
+# Опционально: копирование кастомной конфигурации
 # COPY nginx.conf /etc/nginx/conf.d/default.conf
+
+# Фиксим права для Nginx
+RUN chown -R nginx:nginx /usr/share/nginx/html && \
+    chmod -R 755 /usr/share/nginx/html
