@@ -1,4 +1,4 @@
-version: '3.8'
+version: "3.8"
 
 services:
   portainer:
@@ -12,6 +12,10 @@ services:
       - "9000:9000"
     networks:
       - app-network
+
+volumes:
+  portainer_data:
+    driver: local
 
   client:
     build: ./client
