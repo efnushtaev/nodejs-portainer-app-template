@@ -15,7 +15,7 @@ services:
 
   client: # ПЕРЕМЕЩЕНО В РАЗДЕЛ SERVICES
     build:
-      context: ./client # 🔴 КРИТИЧЕСКОЕ ИЗМЕНЕНИЕ!
+      context: client # 🔴 КРИТИЧЕСКОЕ ИЗМЕНЕНИЕ!
       dockerfile: client/Dockerfile # Путь относительно корня
     networks:
       - app-network
