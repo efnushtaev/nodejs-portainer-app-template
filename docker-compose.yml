@@ -1,27 +1,26 @@
 version: '3.8'
 
 services:
-  frontend:
-    build:
-      context: ./client
-      dockerfile: Dockerfile
+  frontend-builder:
+    build: 
+      context: .
+      dockerfile: ./client/Dockerfile
     networks:
       - portainer-network
     volumes:
       - frontend-build:/app/build
-      - nginx-config:/nginx-config
 
   web:
     image: nginx:alpine
     ports:
       - "80:80"
-      - "443:443"
     volumes:
       - nginx-config:/etc/nginx/conf.d
+      - frontend-build:/usr/share/nginx/html:ro
     networks:
       - portainer-network
     depends_on:
-      - frontend
+      - frontend-builder
 
   portainer:
     image: portainer/portainer-ce:latest

@@ -1,11 +1,25 @@
+# Этап сборки приложения
 FROM node:18-alpine AS builder
 
 WORKDIR /app
+
+# Копируем зависимости и устанавливаем их
 COPY package*.json ./
 RUN npm install
+
+# Копируем исходный код
 COPY . .
+
+# Собираем приложение
 RUN npm run build
 
-# Копируем конфиг Nginx в том
-RUN mkdir -p /nginx-config
-COPY ../nginx/nginx.conf /nginx-config/
+# Этап подготовки конфигов (новый этап)
+FROM alpine:latest AS config-prepare
+
+# Создаем директорию для конфигов
+RUN mkdir -p /etc/nginx/conf.d
+
+# Копируем конфиг Nginx (теперь он в контексте сборки)
+COPY ./nginx/nginx.conf /etc/nginx/conf.d/default.conf
+
+# Финальный этап не нужен - конфиги попадут в volume
