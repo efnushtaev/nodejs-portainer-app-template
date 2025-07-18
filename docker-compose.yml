@@ -27,7 +27,7 @@ services:
     command: -H unix:///var/run/docker.sock
     restart: always
     ports:
-      - "9000:9000"
+      - "9001:9000"  # ИЗМЕНЕНО: используем порт 9001
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - portainer-data:/data
