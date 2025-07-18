@@ -1,16 +1,9 @@
-# Build stage
-FROM node:18-alpine AS build
+FROM node:18-alpine AS builder
 
 WORKDIR /app
-
-# Cache dependencies
 COPY package*.json ./
 RUN npm install
-
-# Copy source
 COPY . .
-
-# Build app
 RUN npm run build
 
-# No need to copy to nginx - handled by compose volume
+# Не создаем финальный образ - статика сохраняется в volume

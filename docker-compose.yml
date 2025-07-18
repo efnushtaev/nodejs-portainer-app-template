@@ -1,9 +1,8 @@
 version: '3.8'
 
 services:
-  # Frontend builder
-  frontend-builder:
-    build: 
+  frontend:
+    build:
       context: ./client
       dockerfile: Dockerfile
     networks:
@@ -11,20 +10,19 @@ services:
     volumes:
       - frontend-build:/app/build
 
-  # Frontend server
-  frontend:
+  web:
     image: nginx:alpine
     ports:
-      - "8080:80"
+      - "80:80"
+      - "443:443"
     volumes:
-      - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf
+      - nginx-config:/etc/nginx/conf.d/default.conf
       - frontend-build:/usr/share/nginx/html:ro
     networks:
       - portainer-network
     depends_on:
-      - frontend-builder
+      - frontend
 
-  # Portainer API service
   portainer:
     image: portainer/portainer-ce:latest
     command: -H unix:///var/run/docker.sock
@@ -44,3 +42,4 @@ networks:
 volumes:
   frontend-build:
   portainer-data:
+  nginx-config:
