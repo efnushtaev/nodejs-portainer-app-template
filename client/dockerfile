@@ -6,4 +6,6 @@ RUN npm install
 COPY . .
 RUN npm run build
 
-# Не создаем финальный образ - статика сохраняется в volume
+# Копируем конфиг Nginx в том
+RUN mkdir -p /nginx-config
+COPY ../nginx/nginx.conf /nginx-config/

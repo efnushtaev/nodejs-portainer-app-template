@@ -9,6 +9,7 @@ services:
       - portainer-network
     volumes:
       - frontend-build:/app/build
+      - nginx-config:/nginx-config
 
   web:
     image: nginx:alpine
@@ -16,8 +17,7 @@ services:
       - "80:80"
       - "443:443"
     volumes:
-      - nginx-config:/etc/nginx/conf.d/default.conf
-      - frontend-build:/usr/share/nginx/html:ro
+      - nginx-config:/etc/nginx/conf.d
     networks:
       - portainer-network
     depends_on:
