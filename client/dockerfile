@@ -1,32 +1,16 @@
-# Этап установки зависимостей
-FROM node:18-alpine AS deps
-
-# Установка системных зависимостей
-RUN apk add --no-cache python3 make g++ git openssh-client
+# Build stage
+FROM node:18-alpine AS build
 
 WORKDIR /app
-COPY package.json package-lock.json* ./
 
-# Устанавливаем зависимости
-RUN npm cache clean --force
-RUN npm ci --no-optional || \ 
-    (npm install --no-optional --legacy-peer-deps && npm cache clean --force)
+# Cache dependencies
+COPY package*.json ./
+RUN npm install
 
-# Этап сборки приложения
-FROM node:18-alpine AS builder
-WORKDIR /app
-COPY --from=deps /app/node_modules ./node_modules
+# Copy source
 COPY . .
 
-# Сборка приложения
-ENV NODE_OPTIONS="--max-old-space-size=4096"
-ENV GENERATE_SOURCEMAP=false
+# Build app
 RUN npm run build
 
-# Финальный образ с Nginx
-FROM nginx:1.25-alpine AS final
-COPY --from=builder /app/build /usr/share/nginx/html
-
-# Фиксим права для Nginx
-RUN chown -R nginx:nginx /usr/share/nginx/html && \
-    chmod -R 755 /usr/share/nginx/html
+# No need to copy to nginx - handled by compose volume

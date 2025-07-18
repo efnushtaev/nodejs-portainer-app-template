@@ -1,35 +1,46 @@
-version: "3.8"
+version: '3.8'
 
 services:
-  portainer:
-    image: portainer/portainer-ce:latest
-    container_name: portainer
-    restart: unless-stopped
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
-      - portainer_data:/data
-    ports:
-      - "9000:9000"
-    networks:
-      - app-network
-
-  # Убран сервис client - сборка интегрирована в nginx
-  nginx:
-    build:
+  # Frontend builder
+  frontend-builder:
+    build: 
       context: ./client
       dockerfile: Dockerfile
-      target: final  # Используем финальный этап сборки
+    networks:
+      - portainer-network
+    volumes:
+      - frontend-build:/app/build
+
+  # Frontend server
+  frontend:
+    image: nginx:alpine
     ports:
-      - "80:80"
+      - "8080:80"
     volumes:
       - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf
+      - frontend-build:/usr/share/nginx/html:ro
     networks:
-      - app-network
+      - portainer-network
+    depends_on:
+      - frontend-builder
 
-volumes:
-  portainer_data:
-    driver: local
+  # Portainer API service
+  portainer:
+    image: portainer/portainer-ce:latest
+    command: -H unix:///var/run/docker.sock
+    restart: always
+    ports:
+      - "9000:9000"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - portainer-data:/data
+    networks:
+      - portainer-network
 
 networks:
-  app-network:
+  portainer-network:
     driver: bridge
+
+volumes:
+  frontend-build:
+  portainer-data:
