@@ -5,7 +5,8 @@ WORKDIR /app
 
 # Копируем зависимости и устанавливаем их
 COPY package*.json ./
-RUN npm install
+RUN npm config set registry https://registry.npmjs.org/ && \
+    npm install
 
 # Копируем исходный код
 COPY . .
