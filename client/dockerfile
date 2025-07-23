@@ -1,14 +1,16 @@
 FROM node:20-alpine AS builder
 WORKDIR /app
 COPY package*.json ./
+
+# Установка зависимостей с очисткой кеша
 RUN npm config set registry https://registry.npmjs.org/ && \
-    npm install
+    npm install --legacy-peer-deps --silent && \
+    npm cache clean --force
+
 COPY . .
 RUN npm run build
 
-# Финальный образ для копирования файлов
+# Финальная стадия для копирования файлов
 FROM alpine:latest AS final
-# Копируем собранный фронтенд
 COPY --from=builder /app/build /frontend-build
-# Копируем конфиг Nginx
 COPY ./nginx/nginx.conf /nginx.conf
