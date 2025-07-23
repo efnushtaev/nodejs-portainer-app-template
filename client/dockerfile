@@ -1,15 +1,13 @@
-# Этап сборки приложения
 FROM node:18-alpine AS builder
-
 WORKDIR /app
-
-# Копируем зависимости и устанавливаем их
 COPY package*.json ./
-RUN npm config set registry https://registry.npmjs.org/ && \
-    npm install
-
-# Копируем исходный код
+RUN npm install
 COPY . .
-
-# Собираем приложение
 RUN npm run build
+
+# Финальный образ для копирования файлов
+FROM alpine:latest AS final
+# Копируем собранный фронтенд
+COPY --from=builder /app/build /frontend-build
+# Копируем конфиг Nginx
+COPY ./nginx/nginx.conf /nginx.conf

@@ -2,21 +2,24 @@ version: '3.8'
 
 services:
   frontend-builder:
-    build: 
+    build:
       context: .
       dockerfile: ./client/Dockerfile
+      target: final # Используем финальный stage
     networks:
       - portainer-network
     volumes:
-      - frontend-build:/app/build
+      - frontend-build:/frontend-build
+      - nginx-config:/config
+    command: sh -c "cp -r /frontend-build/* /frontend-data && cp /nginx.conf /config/"
 
   web:
     image: nginx:alpine
     ports:
       - "80:80"
     volumes:
-    - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf  # прямое монтирование
-    - frontend-build:/usr/share/nginx/html:ro
+      - nginx-config:/etc/nginx/conf.d:ro
+      - frontend-data:/usr/share/nginx/html:ro
     networks:
       - portainer-network
     depends_on:
@@ -27,7 +30,7 @@ services:
     command: -H unix:///var/run/docker.sock
     restart: always
     ports:
-      - "9443:9443"  # ИЗМЕНЕНО: используем порт 9001
+      - "9000:9000" # Исправлено для прокси
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - portainer-data:/data
@@ -39,6 +42,6 @@ networks:
     driver: bridge
 
 volumes:
-  frontend-build:
+  frontend-data:
   portainer-data:
   nginx-config:
