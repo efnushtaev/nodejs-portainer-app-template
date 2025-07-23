@@ -5,13 +5,13 @@ services:
     build:
       context: .
       dockerfile: ./client/Dockerfile
-      target: final # Используем финальный stage
+      target: final
     networks:
       - portainer-network
     volumes:
-      - frontend-build:/frontend-build
+      - frontend-data:/frontend-data
       - nginx-config:/config
-    command: sh -c "cp -r /frontend-build/* /frontend-data && cp /nginx.conf /config/"
+    command: sh -c "cp -r /frontend-build/* /frontend-data && cp /nginx.conf /config/nginx.conf"
 
   web:
     image: nginx:alpine
@@ -30,7 +30,7 @@ services:
     command: -H unix:///var/run/docker.sock
     restart: always
     ports:
-      - "9000:9000" # Исправлено для прокси
+      - "9000:9000"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - portainer-data:/data
