@@ -1,16 +1,33 @@
-FROM node:20-alpine AS builder
+# Этап установки зависимостей
+FROM node:18-alpine AS deps
+
+# Установка системных зависимостей
+RUN apk add --no-cache python3 make g++ git openssh-client
+
+# Создаем и переходим в рабочую директорию
 WORKDIR /app
-COPY package*.json ./
 
-# Установка зависимостей с очисткой кеша
+# Копируем ТОЛЬКО файлы зависимостей - УПРОЩЕНО
+COPY package.json package-lock.json ./
+
+# Устанавливаем зависимости
 RUN npm config set registry https://registry.npmjs.org/ && \
-    npm install --legacy-peer-deps --silent && \
-    npm cache clean --force
+    npm cache clean --force && \
+    npm install --legacy-peer-deps --no-optional --silent
 
+# Этап сборки приложения
+FROM node:18-alpine AS builder
+WORKDIR /app
+COPY --from=deps /app/node_modules ./node_modules
 COPY . .
+
+# Сборка приложения
+ENV NODE_OPTIONS="--max-old-space-size=4096"
+ENV GENERATE_SOURCEMAP=false
 RUN npm run build
 
-# Финальная стадия для копирования файлов
-FROM alpine:latest AS final
-COPY --from=builder /app/build /frontend-build
-COPY ./nginx/nginx.conf /nginx.conf
+# Финальный образ с Nginx
+FROM nginx:1.25-alpine AS final
+COPY --from=builder /app/build /usr/share/nginx/html
+RUN chown -R nginx:nginx /usr/share/nginx/html && \
+    chmod -R 755 /usr/share/nginx/html
