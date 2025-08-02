@@ -1,29 +1,28 @@
 version: '3.8'
 
 services:
-  frontend-builder:
+  frontend:
     build:
       context: ./client
       dockerfile: Dockerfile
-      # target: final
+      target: builder  # Этап, где есть /app/build
     networks:
       - portainer-network
     volumes:
-      - frontend-data:/frontend-data
-      - nginx-config:/config
-    command: sh -c "cp -r /frontend-build/* /frontend-data && cp /nginx.conf /config/nginx.conf"
+      - frontend-data:/app/build  # Монтируем том прямо в директорию сборки
+    command: sh -c "echo 'Frontend build complete'"
 
   web:
     image: nginx:alpine
     ports:
       - "80:80"
     volumes:
-      - nginx-config:/etc/nginx/conf.d:ro
-      - frontend-data:/usr/share/nginx/html:ro
+      - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf:ro  # Локальный файл конфига
+      - frontend-data:/usr/share/nginx/html:ro  # Статические файлы из тома
     networks:
       - portainer-network
     depends_on:
-      - frontend-builder
+      - frontend
 
   portainer:
     image: portainer/portainer-ce:latest

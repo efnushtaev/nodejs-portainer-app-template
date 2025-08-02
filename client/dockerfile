@@ -1,33 +1,35 @@
-# Этап установки зависимостей
-FROM node:18-alpine AS deps
+# Этап сборки приложения
+FROM node:20-alpine AS builder
 
 # Установка системных зависимостей
-RUN apk add --no-cache python3 make g++ git openssh-client
+RUN apk add --no-cache python3 make g++ git
 
-# Создаем и переходим в рабочую директорию
+# Рабочая директория
 WORKDIR /app
 
-# Копируем ТОЛЬКО файлы зависимостей - УПРОЩЕНО
-COPY package.json package-lock.json ./
+# 1. Сначала копируем только package.json
+COPY package.json ./
 
-# Устанавливаем зависимости
-RUN npm config set registry https://registry.npmjs.org/ && \
-    npm cache clean --force && \
-    npm install --legacy-peer-deps --no-optional --silent
+# Временная установка Yarn
+# RUN npm install -g yarn@1.22.22
 
-# Этап сборки приложения
-FROM node:18-alpine AS builder
-WORKDIR /app
-COPY --from=deps /app/node_modules ./node_modules
+# Инициализация проекта
+RUN yarn init -y
+
+# 2. Копируем yarn.lock отдельно
+COPY yarn.lock ./
+
+# Установка зависимостей с флагом --check-cache
+RUN yarn install --immutable --check-cache --network-timeout 600000
+
+# 3. Копируем остальные файлы
 COPY . .
 
 # Сборка приложения
 ENV NODE_OPTIONS="--max-old-space-size=4096"
 ENV GENERATE_SOURCEMAP=false
-RUN npm run build
+RUN yarn build
 
-# Финальный образ с Nginx
-FROM nginx:1.25-alpine AS final
+# Финальный образ
+FROM nginx:1.25-alpine
 COPY --from=builder /app/build /usr/share/nginx/html
-RUN chown -R nginx:nginx /usr/share/nginx/html && \
-    chmod -R 755 /usr/share/nginx/html
