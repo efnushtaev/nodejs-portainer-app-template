@@ -3,8 +3,9 @@ version: '3.8'
 services:
   frontend-builder:
     build: 
-      context: .
-      dockerfile: ./client/Dockerfile
+      context: ./client
+      dockerfile: Dockerfile
+      target: builder  # Этап, где есть /app/build
     networks:
       - portainer-network
     volumes:
