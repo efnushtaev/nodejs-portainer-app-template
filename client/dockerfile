@@ -1,35 +1,7 @@
-# Этап сборки приложения
-FROM node:20-alpine AS builder
-
-# Установка системных зависимостей
-RUN apk add --no-cache python3 make g++ git
-
-# Рабочая директория
+FROM node:18
 WORKDIR /app
-
-# 1. Сначала копируем только package.json
-COPY package.json ./
-
-# Временная установка Yarn
-# RUN npm install -g yarn@1.22.22
-
-# Инициализация проекта
-RUN yarn init -y
-
-# 2. Копируем yarn.lock отдельно
-COPY yarn.lock ./
-
-# Установка зависимостей с флагом --check-cache
-RUN yarn install --immutable --check-cache --network-timeout 600000
-
-# 3. Копируем остальные файлы
+COPY package.json yarn.lock ./
+RUN yarn install --frozen-lockfile
 COPY . .
-
-# Сборка приложения
-ENV NODE_OPTIONS="--max-old-space-size=4096"
-ENV GENERATE_SOURCEMAP=false
-RUN yarn build
-
-# Финальный образ
-FROM nginx:1.25-alpine
-COPY --from=builder /app/build /usr/share/nginx/html
+RUN yarn build && \
+    cp -r build /shared

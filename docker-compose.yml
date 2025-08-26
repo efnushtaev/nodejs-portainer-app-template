@@ -1,45 +1,24 @@
 version: '3.8'
 
 services:
-  frontend-builder:
-    build: 
-      context: ./client
-      dockerfile: Dockerfile
-      target: builder  # Этап, где есть /app/build
-    networks:
-      - portainer-network
+  frontend:
+    build: ./client
+    container_name: react-frontend
     volumes:
-      - frontend-build:/app/build
+      - shared_volume:/shared
+    restart: on-failure
 
-  web:
+  nginx:
     image: nginx:alpine
+    container_name: nginx-proxy
     ports:
       - "80:80"
     volumes:
-      - nginx-config:/etc/nginx/conf.d
-      - frontend-build:/usr/share/nginx/html:ro
-    networks:
-      - portainer-network
+      - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf
+      - shared_volume:/usr/share/nginx/html
     depends_on:
-      - frontend-builder
-
-  portainer:
-    image: portainer/portainer-ce:latest
-    command: -H unix:///var/run/docker.sock
-    restart: always
-    ports:
-      - "9443:9443"  # ИЗМЕНЕНО: используем порт 9001
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
-      - portainer-data:/data
-    networks:
-      - portainer-network
-
-networks:
-  portainer-network:
-    driver: bridge
+      - frontend
+    restart: unless-stopped
 
 volumes:
-  frontend-build:
-  portainer-data:
-  nginx-config:
+  shared_volume:
