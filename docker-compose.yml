@@ -1,24 +1,10 @@
 version: '3.8'
 
 services:
-  frontend:
-    build: ./client
-    container_name: react-frontend
-    volumes:
-      - shared_volume:/shared
-    restart: on-failure
-
-  nginx:
-    image: nginx:alpine
-    container_name: nginx-proxy
+  web:
+    build: .
     ports:
-      - "8080:80"
-    volumes:
-      - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf
-      - shared_volume:/usr/share/nginx/html
-    depends_on:
-      - frontend
+      - "80:80"
+    container_name: react-app
+    command: ["nginx", "-g", "daemon off;"]
     restart: unless-stopped
-
-volumes:
-  shared_volume:
