@@ -1,5 +1,5 @@
 # Используем официальный образ Node.js
-FROM node:18 AS builder
+FROM node:20 AS builder
 
 # Устанавливаем необходимые системные зависимости
 RUN apt-get update && apt-get install -y \
