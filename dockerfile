@@ -10,7 +10,7 @@ RUN apt-get update && apt-get install -y \
 
 WORKDIR /app
 COPY client/package.json client/yarn.lock ./
-# RUN yarn install --frozen-lockfile
+RUN yarn install --frozen-lockfile
 COPY client/ ./
 # RUN yarn build
 
