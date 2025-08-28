@@ -15,10 +15,8 @@ COPY client/package-lock.json ./
 # Устанавливаем зависимости через npm
 RUN npm ci --only=production
 
-RUN yarn install --frozen-lockfile --verbose
-
 COPY client/ ./
-RUN yarn run build
+RUN npm run build
 
 FROM nginx:alpine
 COPY --from=builder /app/build /usr/share/nginx/html
