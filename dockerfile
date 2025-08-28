@@ -8,9 +8,6 @@ RUN apt-get update && apt-get install -y \
     g++ \
     git
 
-RUN chown -R node:node /app
-USER node
-
 WORKDIR /app
 COPY client/package.json client/yarn.lock ./
 RUN yarn install --frozen-lockfile
