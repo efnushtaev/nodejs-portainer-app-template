@@ -9,10 +9,10 @@ RUN apt-get update && apt-get install -y \
     git
 
 WORKDIR /app
-COPY client/package.json client/yarn.lock ./
-RUN yarn install --frozen-lockfile
+COPY client/package.json client/package-lock.json ./
+RUN npm install
 COPY client/ ./
-CMD ["yarn", "build"]
+CMD ["npm", "run", "build"]
 
 FROM nginx:alpine
 COPY --from=builder /app/build /usr/share/nginx/html
