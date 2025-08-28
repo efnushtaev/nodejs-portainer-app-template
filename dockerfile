@@ -12,7 +12,7 @@ WORKDIR /app
 COPY client/package.json client/package-lock.json ./
 RUN npm install
 COPY client/ ./
-CMD ["npm", "run", "build"]
+# CMD ["npm", "run", "build"]
 
 FROM nginx:alpine
 COPY --from=builder /app/build /usr/share/nginx/html
