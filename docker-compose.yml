@@ -1,10 +1,8 @@
 version: '3.8'
-
 services:
   web:
     build: .
     ports:
       - "80:80"
     container_name: react-app
-    command: ["nginx", "-g", "daemon off;"]
     restart: unless-stopped
