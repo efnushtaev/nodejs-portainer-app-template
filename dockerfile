@@ -9,8 +9,8 @@ RUN apt-get update && apt-get install -y \
     git
 
 WORKDIR /app
-COPY client/package.json client/package-lock.json ./
-RUN npm install
+COPY client/package.json client/yarn.lock ./
+RUN yarn install
 COPY client/ ./
 # CMD ["npm", "run", "build"]
 
