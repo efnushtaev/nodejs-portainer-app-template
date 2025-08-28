@@ -10,7 +10,7 @@ RUN apt-get update && apt-get install -y \
 
 WORKDIR /app
 COPY client/package.json client/package-lock.json ./
-RUN npm install
+# RUN npm install
 COPY client/ ./
 # CMD ["npm", "run", "build"]
 
