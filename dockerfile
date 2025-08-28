@@ -10,9 +10,9 @@ RUN apt-get update && apt-get install -y \
 
 WORKDIR /app
 COPY client/package.json client/yarn.lock ./
-CMD ["yarn", "install"]
+RUN yarn install
 COPY client/ ./
-# CMD ["npm", "run", "build"]
+# CMD ["yarn", "build"]
 
 FROM nginx:alpine
 COPY --from=builder /app/build /usr/share/nginx/html
