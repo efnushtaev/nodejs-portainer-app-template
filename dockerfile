@@ -10,9 +10,13 @@ RUN apt-get update && apt-get install -y \
 
 WORKDIR /app
 COPY client/package.json ./
-COPY client/yarn.lock ./
+COPY client/package-lock.json ./
+
+# Устанавливаем зависимости через npm
+RUN npm ci --only=production
 
 RUN yarn install --frozen-lockfile --verbose
+
 COPY client/ ./
 RUN yarn run build
 
