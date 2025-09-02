@@ -1,7 +1,16 @@
 FROM node:18
+RUN apt-get update && apt-get install -y \
+    python3 \
+    make \
+    g++ \
+    git
+
 WORKDIR /app
-COPY server/package.json server/package-lock.json ./
+COPY server/package.json ./
+COPY server/package-lock.json ./
+
 RUN npm ci --only=production
+
 COPY server/ ./
 RUN npm run build
 COPY server/ ./
