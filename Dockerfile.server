@@ -9,7 +9,7 @@ WORKDIR /app
 COPY server/package.json ./
 COPY server/package-lock.json ./
 
-RUN npm ci --only=production
+RUN npm ci --include=dev
 
 COPY server/ ./
 RUN npm run build

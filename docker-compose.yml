@@ -16,12 +16,12 @@ services:
       dockerfile: Dockerfile.server
     container_name: backend
     restart: unless-stopped
-    environment:
-      - NODE_ENV=production
-      - PORT=3001
-    # Добавляем healthcheck для мониторинга состояния
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:3001/api/getTimestamp"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
+    # environment:
+    #   - NODE_ENV=production
+    #   - PORT=3001
+    # # Добавляем healthcheck для мониторинга состояния
+    # healthcheck:
+    #   test: ["CMD", "curl", "-f", "http://localhost:3001/api/getTimestamp"]
+    #   interval: 30s
+    #   timeout: 10s
+    #   retries: 3
