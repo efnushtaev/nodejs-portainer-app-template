@@ -1,44 +1,27 @@
 version: '3.8'
-
 services:
-  frontend-builder:
-    build: 
+  frontend:
+    build:
       context: .
-      dockerfile: ./client/Dockerfile
-    networks:
-      - portainer-network
-    volumes:
-      - frontend-build:/app/build
-
-  web:
-    image: nginx:alpine
+      dockerfile: Dockerfile.client
     ports:
       - "80:80"
-    volumes:
-      - nginx-config:/etc/nginx/conf.d
-      - frontend-build:/usr/share/nginx/html:ro
-    networks:
-      - portainer-network
     depends_on:
-      - frontend-builder
+      - backend
+    restart: unless-stopped
 
-  portainer:
-    image: portainer/portainer-ce:latest
-    command: -H unix:///var/run/docker.sock
-    restart: always
-    ports:
-      - "9443:9443"  # ИЗМЕНЕНО: используем порт 9001
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
-      - portainer-data:/data
-    networks:
-      - portainer-network
-
-networks:
-  portainer-network:
-    driver: bridge
-
-volumes:
-  frontend-build:
-  portainer-data:
-  nginx-config:
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.server
+    container_name: backend
+    restart: unless-stopped
+    environment:
+      - NODE_ENV=production
+      - PORT=3001
+    # Добавляем healthcheck для мониторинга состояния
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3001/api/getTimestamp"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
