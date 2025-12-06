@@ -6,12 +6,12 @@ RUN apt-get update && apt-get install -y \
     git
 
 WORKDIR /app
-COPY server/package.json ./
-COPY server/package-lock.json ./
+COPY package.json ./
+COPY package-lock.json ./
 
 RUN npm ci --include=dev
 
-COPY server/ ./
+COPY . ./
 RUN npm run build
 
 # Используем node напрямую вместо npm start
@@ -19,8 +19,8 @@ RUN npm run build
 FROM node:18-alpine AS production
 WORKDIR /app
 # Копируем только production зависимости
-COPY server/package.json ./
-COPY server/package-lock.json ./
+COPY package.json ./
+COPY package-lock.json ./
 RUN npm ci --only=production && npm cache clean --force
 
 # Копируем только собранное приложение из этапа builder

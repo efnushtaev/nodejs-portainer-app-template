@@ -1,27 +1,92 @@
 version: '3.8'
-services:
-  frontend:
-    build:
-      context: .
-      dockerfile: Dockerfile.client
-    ports:
-      - "80:80"
-    depends_on:
-      - backend
-    restart: unless-stopped
 
+services:
+  # Backend service
   backend:
     build:
-      context: .
-      dockerfile: Dockerfile.server
-    container_name: backend
+      context: https://github.com/efnushtaev/nodejs-portainer-app-template/tree/main/server
+    container_name: my-app-backend
     restart: unless-stopped
     environment:
       - NODE_ENV=production
-      - PORT=3001
-    # Добавляем healthcheck для мониторинга состояния
+      - DATABASE_URL=your_database_url
+      - API_PORT=3001
+      - DB_HOST=mysql
+      - DB_PORT=3306
+      - DB_DATABASE=users_db
+      - DB_USER=app_user
+      - DB_PASSWORD=secure_password
+    depends_on:
+      - mysql
+    expose:
+      - "3001"  # Открываем порт только для внутренней сети Docker
+    networks:
+      - fullstack-network
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:3001/api/getTimestamp"]
+      test: ["CMD", "curl", "-f", "http://localhost:3001/health"]
       interval: 30s
       timeout: 10s
       retries: 3
+      start_period: 60s
+
+  # Frontend service (только сборка статики)
+  frontend:
+    build:
+      context: https://github.com/efnushtaev/nodejs-portainer-app-template/tree/main/client
+    container_name: my-app-frontend-builder
+    image: portainer-demo-docker-compose-frontend  
+    restart: "no"  # Этот контейнер не должен перезапускаться
+    networks:
+      - fullstack-network
+    # Не публикуем порты, контейнер используется только для сборки
+
+  # Nginx reverse proxy
+  nginx:
+    build:
+      context: .
+    container_name: my-app-nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"      # HTTP
+      - "443:443"    # HTTPS (если добавите SSL)
+    depends_on:
+      - backend
+      - frontend
+    networks:
+      - fullstack-network
+    # volumes:
+      # Монтируем статику из фронтенда в nginx
+      # - frontend-static:/usr/share/nginx/html:ro
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  mysql:
+    image: mysql:8.0
+    container_name: portainer_mysql
+    restart: unless-stopped
+    environment:
+      - MYSQL_ROOT_PASSWORD=root_password
+      - MYSQL_DATABASE=users_db
+      - MYSQL_USER=app_user
+      - MYSQL_PASSWORD=secure_password
+    networks:
+      - fullstack-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-proot_password"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+
+# Volumes для хранения статики фронтенда
+# volumes:
+  # frontend-static:
+    # driver: local
+
+# Сеть для коммуникации между сервисами
+networks:
+  fullstack-network:
+    driver: bridge

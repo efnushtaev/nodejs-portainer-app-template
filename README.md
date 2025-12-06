@@ -41,3 +41,42 @@
 
 - API доступен только через фронтенд (Nginx не проксирует /api наружу напрямую).
 - Кэширование и отключение server_tokens повышают безопасность и производительность.
+
+
+## Команды для БД
+
+### Просмотр содержимого тома:
+```
+# Посмотреть файлы в томе mysql_init
+docker run --rm -v mysql_init:/data alpine ls -la /data
+
+# Посмотреть содержимое файла
+docker run --rm -v mysql_init:/data alpine cat /data/init.sql
+```
+
+### Резервное копирование:
+```
+# Бэкап тома в tar архив
+docker run --rm -v mysql_init:/data -v $(pwd):/backup alpine \
+  tar czf /backup/mysql_init_backup.tar.gz -C /data .
+
+# Восстановление из бэкапа
+docker run --rm -v mysql_init:/data -v $(pwd):/backup alpine \
+  tar xzf /backup/mysql_init_backup.tar.gz -C /data
+```
+
+### Удаление и пересоздание:
+```
+# Остановить контейнеры
+docker-compose down
+
+# Удалить том (осторожно - данные будут потеряны!)
+docker volume rm projectname_mysql_init
+
+# Пересоздать и заполнить том
+docker volume create projectname_mysql_init
+./setup-volumes.sh
+
+# Запустить снова
+docker-compose up -d
+```
