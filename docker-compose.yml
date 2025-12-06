@@ -4,7 +4,8 @@ services:
   # Backend service
   backend:
     build:
-      context: https://github.com/efnushtaev/nodejs-portainer-app-template/tree/main/server
+      context: ./server
+      dockerfile: Dockerfile
     container_name: my-app-backend
     restart: unless-stopped
     environment:
@@ -32,7 +33,8 @@ services:
   # Frontend service (только сборка статики)
   frontend:
     build:
-      context: https://github.com/efnushtaev/nodejs-portainer-app-template/tree/main/client
+      context: ./client
+      dockerfile: Dockerfile
     container_name: my-app-frontend-builder
     image: portainer-demo-docker-compose-frontend  
     restart: "no"  # Этот контейнер не должен перезапускаться
