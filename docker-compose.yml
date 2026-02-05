@@ -45,7 +45,7 @@ services:
   # Nginx reverse proxy
   nginx:
     build:
-      context: .
+      context: ./nginx
     container_name: my-app-nginx
     restart: unless-stopped
     ports:
